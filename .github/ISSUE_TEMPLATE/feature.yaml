@@ -1,7 +1,6 @@
 name: ✨ Feature
 description: 새로운 기능 추가
 title: "[] "
-issue_type: Feature
 assignees: okodeee
 
 body:
@@ -12,7 +11,7 @@ body:
     validations:
       required: true
 
-  - type: checklist
+  - type: checkboxes
     attributes:
       label: 📌 상세 작업 내용
       description: 구체적으로 수행할 작업들을 체크리스트로 작성해주세요

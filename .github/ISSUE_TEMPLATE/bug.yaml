@@ -1,7 +1,6 @@
 name: 🐛 Bug
 description: 버그/오류 수정
 title: "[] "
-issue_type: Bug
 assignees: okodeee
 
 body:
