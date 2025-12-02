@@ -11,7 +11,7 @@ body:
     validations:
       required: true
 
-  - type: checkboxes
+  - type: textarea
     attributes:
       label: 📌 상세 작업 내용
       description: 구체적으로 수행할 작업들을 체크리스트로 작성해주세요
@@ -24,9 +24,9 @@ body:
   - type: checkboxes
     attributes:
       label: ✅ 완료 조건
-      value: |
-        - [ ] 노션 문서에 업데이트
-        - [ ] 관련 코드와 일치
+      options: 
+        - label: 노션 문서에 업데이트
+        - label: 관련 코드와 일치
     validations:
       required: true
 
