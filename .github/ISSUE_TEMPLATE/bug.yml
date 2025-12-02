@@ -1,0 +1,53 @@
+name: 🐛 Bug
+description: 버그/오류 수정
+title: "[] "
+issue_type: Bug
+assignees: okodeee
+
+body:
+  - type: textarea
+    attributes:
+      label: 🐛 버그 설명
+      description: 어떤 버그인지 명확하게 설명해주세요
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 📍 발생 위치
+      description: 버그가 발생하는 화면, API, 코드 위치 등
+      value: |
+        - 파일: 
+        - 함수/메서드:
+        - 라인:
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 🔄 재현 방법
+      description: 버그를 재현하는 단계를 작성해주세요
+      value: |
+        1.
+        2.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 🎯 예상 동작
+      description: 정상적으로 동작해야 하는 방식
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 💥 실제 동작
+      description: 현재 어떻게 동작하는지
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 🖼️ 스크린샷
+      description: 가능하다면 스크린샷을 첨부해주세요
