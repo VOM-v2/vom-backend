@@ -1,0 +1,18 @@
+spring:
+  # Datasource Connection Config
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/vom
+    username: okodee
+    password: okodee
+  # JPA Config
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+#      show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
