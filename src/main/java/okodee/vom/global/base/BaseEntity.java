@@ -1,4 +1,4 @@
-package okodee.vom.entity.base;
+package okodee.vom.global.base;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
