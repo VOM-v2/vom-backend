@@ -4,6 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum ErrorCode {
+    // Auth
+    DUPLICATE_EMAIL("이미 가입된 이메일입니다."),
+
     // Server 에러 코드
     INTERNAL_SERVER_ERROR("서버 내부 오류가 발생했습니다."),
     INVALID_REQUEST("잘못된 요청입니다.");

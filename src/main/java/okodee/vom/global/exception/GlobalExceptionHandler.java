@@ -1,5 +1,6 @@
 package okodee.vom.global.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,15 +17,16 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(VomException.class)
-    public ResponseEntity<ErrorResponse> handleVomException(VomException e) {
+    public ResponseEntity<ErrorResponse> handleVomException(VomException e, HttpServletRequest request) {
         log.error("커스텀 예외 발생: code={}, message={}", e.getErrorCode(), e.getMessage(), e);
         HttpStatus status = determineHttpStatus(e);
-        ErrorResponse response = new ErrorResponse(e, status.value());
+        ErrorResponse response = new ErrorResponse(e, status.value(), request.getRequestURI());
         return ResponseEntity.status(status).body(response);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException e,
+        HttpServletRequest request) {
         log.error("요청 유효성 검사 실패: {}", e.getMessage());
 
         Map<String, Object> validationErrors = new HashMap<>();
@@ -38,6 +40,7 @@ public class GlobalExceptionHandler {
             Instant.now(),
             "VALIDATION_ERROR",
             "요청 데이터 유효성 검사에 실패했습니다",
+            request.getRequestURI(),
             validationErrors,
             e.getClass().getSimpleName(),
             HttpStatus.BAD_REQUEST.value()
@@ -47,15 +50,16 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+    public ResponseEntity<ErrorResponse> handleException(Exception e, HttpServletRequest request) {
         log.error("예상치 못한 오류 발생: {}", e.getMessage(), e);
-        ErrorResponse response = new ErrorResponse(e, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        ErrorResponse response = new ErrorResponse(e, HttpStatus.INTERNAL_SERVER_ERROR.value(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
     private HttpStatus determineHttpStatus(VomException exception) {
         ErrorCode errorCode = exception.getErrorCode();
         return switch (errorCode) {
+            case DUPLICATE_EMAIL -> HttpStatus.CONFLICT;
             case INVALID_REQUEST -> HttpStatus.BAD_REQUEST;
             case INTERNAL_SERVER_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
         };

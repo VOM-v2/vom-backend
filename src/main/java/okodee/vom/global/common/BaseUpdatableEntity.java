@@ -1,4 +1,4 @@
-package okodee.vom.global.base;
+package okodee.vom.global.common;
 
 import jakarta.persistence.Column;
 import java.time.Instant;
