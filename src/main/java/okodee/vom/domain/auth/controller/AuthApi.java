@@ -2,6 +2,7 @@ package okodee.vom.domain.auth.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,8 +13,11 @@ import jakarta.validation.Valid;
 import okodee.vom.domain.auth.dto.SignupRequest;
 import okodee.vom.domain.user.dto.UserDto;
 import okodee.vom.global.exception.ErrorResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "AUTH", description = "인증 관련 API")
@@ -107,5 +111,25 @@ public interface AuthApi {
             )
         )
         @Valid @RequestBody SignupRequest signupRequest
+    );
+
+    @Operation(
+        summary = "CSRF 토큰 발급",
+        description = "클라이언트가 CSRF 토큰을 요청하면 쿠키로 XSRF-TOKEN을 발급합니다. " +
+            "발급된 토큰은 이후 POST, PUT, DELETE 요청 시 X-XSRF-TOKEN 헤더에 포함해야 합니다."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "204",
+            description = "CSRF 토큰이 쿠키로 설정되었습니다.",
+            headers = @Header(
+                name = "Set-Cookie",
+                description = "XSRF-TOKEN 쿠키",
+                schema = @Schema(type = "string", example = "XSRF-TOKEN=b05b8d29-dbb7-4dac-8466-5b81d79be8f1; Path=/")
+            )
+        )
+    })
+    ResponseEntity<Void> getCsrfToken(
+        @Parameter(hidden = true) CsrfToken csrfToken
     );
 }

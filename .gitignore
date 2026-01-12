@@ -37,3 +37,4 @@ out/
 .vscode/
 
 **/resources/static
+*.env
