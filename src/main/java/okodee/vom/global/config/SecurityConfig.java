@@ -46,17 +46,18 @@ public class SecurityConfig {
                 .failureHandler(loginFailureHandler)
             )
             .logout(logout -> logout
-                .logoutUrl("/api/auth/logout")
+                .logoutUrl("/api/auth/sign-out")
                 .addLogoutHandler(jwtLogoutHandler)
                 .logoutSuccessHandler(
                     new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
             )
             .authorizeHttpRequests(auth -> auth
                 // Auth 엔드포인트
-                .requestMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
+//                .requestMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/auth/csrf-token").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/sign-in").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/sign-out").permitAll()
                 // 정적 리소스 (API가 아닌 모든 것)
                 .requestMatchers(request ->
                     !request.getRequestURI().startsWith("/api/")

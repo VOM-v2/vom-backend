@@ -30,7 +30,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 유저 생성 및 저장
-        User user = new User(email, signupRequest.nickname(), signupRequest.password());
+//        User user = new User(email, signupRequest.nickname(), signupRequest.password());
+        User user = new User(email, signupRequest.name(), signupRequest.password());
         userRepository.save(user);
 
         log.info("사용자 생성 완료: email={}, nickname={}", user.getEmail(), user.getNickname());
