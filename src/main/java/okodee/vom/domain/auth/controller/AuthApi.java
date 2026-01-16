@@ -9,15 +9,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import okodee.vom.domain.auth.dto.JwtDto;
 import okodee.vom.domain.auth.dto.SignupRequest;
 import okodee.vom.domain.user.dto.UserDto;
 import okodee.vom.global.exception.ErrorResponse;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "AUTH", description = "인증 관련 API")
@@ -131,5 +132,80 @@ public interface AuthApi {
     })
     ResponseEntity<Void> getCsrfToken(
         @Parameter(hidden = true) CsrfToken csrfToken
+    );
+
+    @Operation(
+        summary = "액세스 토큰 갱신",
+        description = "리프레시 토큰을 사용하여 새로운 액세스 토큰과 리프레시 토큰을 발급받습니다."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "토큰 갱신 성공",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = JwtDto.class),
+                examples = @ExampleObject(
+                    name = "토큰 갱신 성공 예시",
+                    value = """
+                    {
+                        "user": {
+                            "id": "d73e0b9a-9607-4fd4-a52d-030a96413322",
+                            "createdAt": "2026-01-08T16:35:52.960Z",
+                            "email": "test@email.com",
+                            "nickname": "test",
+                            "role": "USER",
+                            "locked": false
+                        },
+                        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                    """
+                )
+            ),
+            headers = @Header(
+                name = "Set-Cookie",
+                description = "갱신된 리프레시 토큰 (HttpOnly 쿠키)",
+                schema = @Schema(type = "string", example = "REFRESH_TOKEN=eyJhbGc...; Path=/; HttpOnly; Secure; SameSite=Strict")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "유효하지 않은 토큰",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = @ExampleObject(
+                    name = "토큰 검증 실패",
+                    value = """
+                    {
+                        "timestamp": "2026-01-08T16:33:06.081Z",
+                        "status": 401,
+                        "code": "INVALID_TOKEN",
+                        "message": "유효하지 않은 토큰입니다.",
+                        "path": "/api/v1/auth/refresh",
+                        "details": {},
+                        "exceptionType": "VomException"
+                    }
+                    """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "서버 내부 오류",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = ErrorResponse.class)
+            )
+        )
+    })
+    ResponseEntity<JwtDto> refresh(
+        @Parameter(
+            description = "리프레시 토큰 (쿠키)",
+            required = true,
+            example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        )
+        @CookieValue("REFRESH_TOKEN") String refreshToken,
+        HttpServletResponse response
     );
 }
