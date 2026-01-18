@@ -55,12 +55,14 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
             } catch (JOSEException e) {
                 log.error("Failed to generate JWT token for user: {}", userDetails.getUsername(),
                     e);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 ErrorResponse errorResponse = new ErrorResponse(
                     new RuntimeException("Token generation failed"), HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "/api/auth/login"
                 );
                 response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
             }
         } else {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             ErrorResponse errorResponse = new ErrorResponse(
                 new RuntimeException("Authentication failed: Invalid user details"), HttpServletResponse.SC_UNAUTHORIZED, "/api/auth/login"
             );

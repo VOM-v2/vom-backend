@@ -34,7 +34,7 @@ public class AuthController implements AuthApi {
     public ResponseEntity<UserDto> signup(
         @RequestBody @Valid SignupRequest signupRequest
     ) {
-        log.info("사용자 생성 요청: {}", signupRequest);
+        log.info("사용자 생성 요청: email={}", signupRequest.email());
 
         UserDto createdUser = authService.signup(signupRequest);
 
@@ -46,7 +46,7 @@ public class AuthController implements AuthApi {
     @GetMapping("/auth/csrf-token")
     public ResponseEntity<Void> getCsrfToken(CsrfToken csrfToken) {
         log.debug("CSRF 토큰 요청");
-        log.trace("CSRF 토큰: {}", csrfToken.getToken());
+        log.trace("CSRF 토큰 발급");
         return ResponseEntity
             .status(HttpStatus.NO_CONTENT)
             .build();

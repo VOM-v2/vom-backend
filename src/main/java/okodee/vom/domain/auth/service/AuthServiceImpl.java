@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public UserDto signup(SignupRequest signupRequest) {
-        log.debug("사용자 생성 시작: {}", signupRequest);
+        log.debug("사용자 생성 시작: email={}", signupRequest.email());
 
         // 중복 이메일 확인
         String email = signupRequest.email();
