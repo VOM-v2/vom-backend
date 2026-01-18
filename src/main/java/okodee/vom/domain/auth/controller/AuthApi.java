@@ -39,7 +39,7 @@ public interface AuthApi {
                             "id": "d73e0b9a-9607-4fd4-a52d-030a96413322",
                             "createdAt": "2026-01-08T16:35:52.960Z",
                             "email": "test@email.com",
-                            "nickname": "test",
+                            "name": "test",
                             "role": "USER",
                             "locked": false
                         }
@@ -105,7 +105,7 @@ public interface AuthApi {
                         {
                             "email": "test@email.com",
                             "password": "password123!",
-                            "nickname": "테스트유저"
+                            "name": "테스트유저"
                         }
                         """
                 )
@@ -153,7 +153,7 @@ public interface AuthApi {
                             "id": "d73e0b9a-9607-4fd4-a52d-030a96413322",
                             "createdAt": "2026-01-08T16:35:52.960Z",
                             "email": "test@email.com",
-                            "nickname": "test",
+                            "name": "test",
                             "role": "USER",
                             "locked": false
                         },

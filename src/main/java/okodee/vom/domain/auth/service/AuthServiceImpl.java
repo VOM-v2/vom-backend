@@ -46,11 +46,10 @@ public class AuthServiceImpl implements AuthService {
         String encodedPassword = passwordEncoder.encode(signupRequest.password());
 
         // 유저 생성 및 저장
-//        User user = new User(email, signupRequest.nickname(), encodedPassword);
         User user = new User(email, signupRequest.name(), encodedPassword);
         userRepository.save(user);
 
-        log.info("사용자 생성 완료: email={}, nickname={}", user.getEmail(), user.getNickname());
+        log.info("사용자 생성 완료: email={}, name={}", user.getEmail(), user.getName());
 
         return userMapper.toDto(user);
     }
