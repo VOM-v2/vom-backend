@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import okodee.vom.domain.user.dto.UserDto;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,7 @@ public class JwtTokenProvider {
 
     private final int accessTokenExpirationMs;
     private final int refreshTokenExpirationMs;
+    private final boolean cookieSecure;
 
     private final JWSSigner accessTokenSigner;
     private final JWSVerifier accessTokenVerifier;
@@ -38,11 +40,13 @@ public class JwtTokenProvider {
         @Value("${vom.jwt.access-token.secret}") String accessTokenSecret,
         @Value("${vom.jwt.access-token.expiration-ms}") int accessTokenExpirationMs,
         @Value("${vom.jwt.refresh-token.secret}") String refreshTokenSecret,
-        @Value("${vom.jwt.refresh-token.expiration-ms}") int refreshTokenExpirationMs)
+        @Value("${vom.jwt.refresh-token.expiration-ms}") int refreshTokenExpirationMs,
+        @Value("${vom.jwt.cookie.secure:false}") boolean cookieSecure)
         throws JOSEException {
 
         this.accessTokenExpirationMs = accessTokenExpirationMs;
         this.refreshTokenExpirationMs = refreshTokenExpirationMs;
+        this.cookieSecure = cookieSecure;
 
         byte[] accessSecretBytes = accessTokenSecret.getBytes(StandardCharsets.UTF_8);
         this.accessTokenSigner = new MACSigner(accessSecretBytes);
@@ -141,22 +145,24 @@ public class JwtTokenProvider {
         }
     }
 
-    public Cookie generateRefreshTokenCookie(String refreshToken) {
+    public ResponseCookie generateRefreshTokenCookie(String refreshToken) {
         // Set refresh token in HttpOnly cookie
-        Cookie refreshCookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true); // Use HTTPS in production
-        refreshCookie.setPath("/");
-        refreshCookie.setMaxAge(refreshTokenExpirationMs / 1000);
-        return refreshCookie;
+        return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
+            .path("/")
+            .maxAge(refreshTokenExpirationMs / 1000)
+            .httpOnly(true)
+            .secure(cookieSecure)
+            .sameSite("Strict")
+            .build();
     }
 
-    public Cookie generateRefreshTokenExpirationCookie() {
-        Cookie refreshCookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, "");
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true); // Use HTTPS in production
-        refreshCookie.setPath("/");
-        refreshCookie.setMaxAge(0);
-        return refreshCookie;
+    public ResponseCookie generateRefreshTokenExpirationCookie() {
+        return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+            .path("/")
+            .maxAge(0)
+            .httpOnly(true)
+            .secure(cookieSecure)
+            .sameSite("Strict")
+            .build();
     }
 }

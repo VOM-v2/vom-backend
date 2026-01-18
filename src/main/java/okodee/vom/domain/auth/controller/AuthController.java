@@ -1,6 +1,5 @@
 package okodee.vom.domain.auth.controller;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +11,7 @@ import okodee.vom.domain.auth.service.AuthService;
 import okodee.vom.domain.user.dto.UserDto;
 import okodee.vom.global.security.JwtTokenProvider;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -57,9 +57,8 @@ public class AuthController implements AuthApi {
         HttpServletResponse response) {
         log.info("토큰 리프레시 요청");
         JwtInformation refreshResult = authService.refreshToken(refreshToken);
-        Cookie refreshCookie = jwtTokenProvider.generateRefreshTokenCookie(
-            refreshResult.refreshToken());
-        response.addCookie(refreshCookie);
+        ResponseCookie refreshCookie = jwtTokenProvider.generateRefreshTokenCookie(refreshResult.refreshToken());
+        response.addHeader("Set-Cookie", refreshCookie.toString());
 
         JwtDto body = new JwtDto(
 
