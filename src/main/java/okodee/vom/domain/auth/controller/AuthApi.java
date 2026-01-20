@@ -21,7 +21,7 @@ import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@Tag(name = "AUTH", description = "인증 관련 API")
+@Tag(name = "Auth", description = "인증 관련 API")
 public interface AuthApi {
 
     @Operation(summary = "회원가입")

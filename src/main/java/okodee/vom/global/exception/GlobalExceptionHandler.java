@@ -62,6 +62,7 @@ public class GlobalExceptionHandler {
             case DUPLICATE_EMAIL -> HttpStatus.CONFLICT;
             case INVALID_REQUEST -> HttpStatus.BAD_REQUEST;
             case INVALID_TOKEN, INVALID_USER_DETAILS -> HttpStatus.UNAUTHORIZED;
+            case USER_NOT_FOUND -> HttpStatus.NOT_FOUND;
             case INTERNAL_SERVER_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }
