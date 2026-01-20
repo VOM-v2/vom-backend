@@ -1,0 +1,4 @@
+vom:
+  jwt:
+    cookie:
+      secure: true
