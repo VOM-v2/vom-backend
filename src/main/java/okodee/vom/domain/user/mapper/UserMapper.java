@@ -11,6 +11,5 @@ public interface UserMapper {
     UserDto toDto(User user);
 
     @Mapping(target = "userId", source = "id")
-    @Mapping(target = "gender", expression = "java(user.getGender() != null ? user.getGender().name() : null)")
     ProfileDto toProfileDto(User user);
 }
