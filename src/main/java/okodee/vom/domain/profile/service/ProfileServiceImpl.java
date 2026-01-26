@@ -32,17 +32,13 @@ public class ProfileServiceImpl implements ProfileService {
             .orElseThrow(() -> UserNotFoundException.withId(userId));
     }
 
-    @PreAuthorize("principal.userDto.id == #userId")
     @Transactional
     @Override
     public ProfileDto update(UUID userId, ProfileUpdateRequest profileUpdateRequest, Optional<MultipartFile> image) {
         log.debug("사용자 프로필 수정 시작: id={}", userId);
 
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> {
-                UserNotFoundException exception = UserNotFoundException.withId(userId);
-                return exception;
-            });
+            .orElseThrow(() -> UserNotFoundException.withId(userId));
 
         String newProfileImageUrl = image.map(img -> {
             log.debug("프로필 이미지 업로드 시작");
