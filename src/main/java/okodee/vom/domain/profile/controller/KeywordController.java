@@ -1,15 +1,19 @@
 package okodee.vom.domain.profile.controller;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import okodee.vom.domain.profile.dto.KeywordUpdateRequest;
 import okodee.vom.domain.profile.dto.UserKeywordResponse;
 import okodee.vom.domain.profile.service.KeywordServiceImpl;
 import okodee.vom.global.security.VomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,6 +42,26 @@ public class KeywordController implements KeywordApi {
         return ResponseEntity.ok(keywords);
     }
 
+    @Override
+    @PutMapping("/me")
+    public ResponseEntity<List<UserKeywordResponse>> updateMyKeywords(
+        Authentication authentication,
+        @RequestBody @Valid KeywordUpdateRequest request
+    ) {
+        UUID userId = extractUserIdFromAuthentication(authentication);
+
+        log.info("사용자 관심 키워드 수정 요청: userId={}, keywordIds={}",
+            userId, request.keywordIds());
+
+        List<UserKeywordResponse> updatedKeywords =
+            keywordService.updateUserKeywords(userId, request);
+
+        log.debug("사용자 관심 키워드 수정 응답: userId={}, count={}",
+            userId, updatedKeywords.size());
+
+        return ResponseEntity.ok(updatedKeywords);
+    }
+
     /**
      * Authentication 객체에서 사용자 ID 추출
      */
@@ -50,7 +74,7 @@ public class KeywordController implements KeywordApi {
 
         // VomUserDetails에서 ID 추출
         if (principal instanceof VomUserDetails vomUserDetails) {
-            return vomUserDetails.getId();  // ✅ getId() 메서드 사용
+            return vomUserDetails.getId();
         }
 
         throw new IllegalStateException("지원하지 않는 Principal 타입입니다: " + principal.getClass());
