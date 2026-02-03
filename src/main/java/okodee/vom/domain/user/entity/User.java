@@ -71,4 +71,19 @@ public class User extends BaseUpdatableEntity {
         this.name = name;
         this.password = password;
     }
+
+    public void update(String newName, Gender newGender, LocalDate newBirthDate, String newProfile) {
+        if (newName != null && !newName.equals(this.name)) {
+            this.name = newName;
+        }
+        if (newGender != null && !newGender.equals(this.gender)) {
+            this.gender = newGender;
+        }
+        if (newBirthDate != null && !newBirthDate.equals(this.birthDate)) {
+            this.birthDate = newBirthDate;
+        }
+        if (newProfile != null) {
+            this.profileImageUrl = newProfile;
+        }
+    }
 }

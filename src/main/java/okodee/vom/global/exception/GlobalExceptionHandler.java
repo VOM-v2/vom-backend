@@ -59,9 +59,20 @@ public class GlobalExceptionHandler {
     private HttpStatus determineHttpStatus(VomException exception) {
         ErrorCode errorCode = exception.getErrorCode();
         return switch (errorCode) {
+            // Auth
             case DUPLICATE_EMAIL -> HttpStatus.CONFLICT;
             case INVALID_REQUEST -> HttpStatus.BAD_REQUEST;
             case INVALID_TOKEN, INVALID_USER_DETAILS -> HttpStatus.UNAUTHORIZED;
+
+            // User
+            case USER_NOT_FOUND -> HttpStatus.NOT_FOUND;
+
+            // Keyword (추가)
+            case KEYWORD_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case MAX_KEYWORDS_EXCEEDED -> HttpStatus.BAD_REQUEST;
+            case DUPLICATE_KEYWORD -> HttpStatus.CONFLICT;
+
+            // Server
             case INTERNAL_SERVER_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }
