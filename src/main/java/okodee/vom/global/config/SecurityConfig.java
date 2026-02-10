@@ -61,8 +61,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 // Auth 엔드포인트
-//                .requestMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/sign-up").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/auth/csrf-token").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/sign-in").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()

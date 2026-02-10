@@ -23,14 +23,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController implements AuthApi {
     private final AuthService authService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @PostMapping(path="/users")
-//    @PostMapping(path="/signup")
+    @PostMapping(path="/sign-up")
     public ResponseEntity<UserDto> signup(
         @RequestBody @Valid SignupRequest signupRequest
     ) {
@@ -43,7 +42,7 @@ public class AuthController implements AuthApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
-    @GetMapping("/auth/csrf-token")
+    @GetMapping("/csrf-token")
     public ResponseEntity<Void> getCsrfToken(CsrfToken csrfToken) {
         log.debug("CSRF 토큰 요청");
         log.trace("CSRF 토큰 발급");
@@ -52,7 +51,7 @@ public class AuthController implements AuthApi {
             .build();
     }
 
-    @PostMapping("/auth/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<JwtDto> refresh(@CookieValue("REFRESH_TOKEN") String refreshToken,
         HttpServletResponse response) {
         log.info("토큰 리프레시 요청");
