@@ -26,8 +26,8 @@ public class User extends BaseUpdatableEntity {
     @Column(name = "email", unique = true, length = 100)
     private String email;
 
-    @Column(name = "name", nullable = false, length = 20)
-    private String name;
+    @Column(name = "nickname", nullable = false, length = 20)
+    private String nickname;
 
     @Column(name = "password", length = 60)
     private String password;
@@ -66,15 +66,15 @@ public class User extends BaseUpdatableEntity {
     @Column(nullable = false)
     private Role role = Role.USER;
 
-    public User(String email, String name, String password) {
+    public User(String email, String nickname, String password) {
         this.email = email;
-        this.name = name;
+        this.nickname = nickname;
         this.password = password;
     }
 
     public void update(String newName, Gender newGender, LocalDate newBirthDate, String newProfile) {
-        if (newName != null && !newName.equals(this.name)) {
-            this.name = newName;
+        if (newName != null && !newName.equals(this.nickname)) {
+            this.nickname = newName;
         }
         if (newGender != null && !newGender.equals(this.gender)) {
             this.gender = newGender;
