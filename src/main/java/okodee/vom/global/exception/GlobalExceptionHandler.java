@@ -11,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @Slf4j
 @RestControllerAdvice
@@ -47,6 +48,16 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(
+        MaxUploadSizeExceededException e,
+        HttpServletRequest request) {
+        log.warn("파일 크기 초과: {}", e.getMessage());
+        return ResponseEntity
+            .status(HttpStatus.PAYLOAD_TOO_LARGE)  // 413 상태코드
+            .body(new ErrorResponse(e, HttpStatus.PAYLOAD_TOO_LARGE.value(), request.getRequestURI()));
     }
 
     @ExceptionHandler(Exception.class)
