@@ -1,6 +1,7 @@
 package okodee.vom.domain.snap.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +14,13 @@ import okodee.vom.global.security.VomUserDetails;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -65,6 +69,20 @@ public class SnapController {
         log.debug("사용자별 스냅 목록 조회 응답: totalElements={}", snaps.totalElements());
 
         return ResponseEntity.ok(snaps);
+    }
+
+    @DeleteMapping("/{snapId}")
+    public ResponseEntity<Void> delete(
+        @PathVariable UUID snapId,
+        Authentication authentication
+    ) {
+        log.info("스냅 삭제 요청: id={}", snapId);
+
+        UUID userId = extractUserIdFromAuthentication(authentication);
+        snapService.delete(snapId, userId);
+
+        log.debug("스냅 삭제 완료");
+        return ResponseEntity.noContent().build();
     }
 
     /**

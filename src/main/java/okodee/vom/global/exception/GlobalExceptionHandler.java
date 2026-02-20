@@ -77,11 +77,15 @@ public class GlobalExceptionHandler {
 
             // User
             case USER_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case UNAUTHORIZED_ACCESS -> HttpStatus.FORBIDDEN;
 
             // Keyword (추가)
             case KEYWORD_NOT_FOUND -> HttpStatus.NOT_FOUND;
             case MAX_KEYWORDS_EXCEEDED -> HttpStatus.BAD_REQUEST;
             case DUPLICATE_KEYWORD -> HttpStatus.CONFLICT;
+
+            // Snap
+            case SNAP_NOT_FOUND -> HttpStatus.NOT_FOUND;
 
             // Server
             case INTERNAL_SERVER_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;

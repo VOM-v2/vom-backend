@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import okodee.vom.domain.snap.dto.SnapCreateRequest;
 import okodee.vom.domain.snap.dto.SnapDto;
 import okodee.vom.domain.snap.entity.Snap;
+import okodee.vom.domain.snap.exception.SnapNotFoundException;
 import okodee.vom.domain.snap.mapper.SnapMapper;
 import okodee.vom.domain.snap.repository.SnapRepository;
 import okodee.vom.domain.user.entity.User;
@@ -15,9 +16,11 @@ import okodee.vom.domain.user.exception.UserNotFoundException;
 import okodee.vom.domain.user.repository.UserRepository;
 import okodee.vom.global.common.PageResponse;
 import okodee.vom.global.common.PageResponseMapper;
+import okodee.vom.global.exception.UnauthorizedAccessException;
 import okodee.vom.global.util.S3ImageStorage;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -71,5 +74,25 @@ public class SnapServiceImpl implements SnapService {
                 .createdAt();
         }
         return pageResponseMapper.fromSlice(slice, nextCursor);
+    }
+
+    @Transactional
+    @Override
+    public void delete(UUID snapId, UUID requestUserId) {
+        log.debug("스냅 삭제 시작: id={}", snapId);
+
+        Snap snap = snapRepository.findById(snapId)
+            .orElseThrow(() -> SnapNotFoundException.withId(snapId));
+
+        if (!snap.getUser().getId().equals(requestUserId)) {
+            throw new UnauthorizedAccessException();
+        }
+
+        if (snap.getSnapImageUrl() != null && !snap.getSnapImageUrl().isBlank()) {
+            s3ImageStorage.deleteImage(snap.getSnapImageUrl());
+        }
+
+        snapRepository.delete(snap);
+        log.info("스냅 삭제 완료: id={}", snapId);
     }
 }
