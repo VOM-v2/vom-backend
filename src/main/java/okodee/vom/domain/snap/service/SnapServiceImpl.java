@@ -1,5 +1,7 @@
 package okodee.vom.domain.snap.service;
 
+import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +13,11 @@ import okodee.vom.domain.snap.repository.SnapRepository;
 import okodee.vom.domain.user.entity.User;
 import okodee.vom.domain.user.exception.UserNotFoundException;
 import okodee.vom.domain.user.repository.UserRepository;
+import okodee.vom.global.common.PageResponse;
+import okodee.vom.global.common.PageResponseMapper;
 import okodee.vom.global.util.S3ImageStorage;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +31,7 @@ public class SnapServiceImpl implements SnapService {
     private final SnapRepository snapRepository;
     private final S3ImageStorage s3ImageStorage;
     private final SnapMapper snapMapper;
+    private final PageResponseMapper pageResponseMapper;
 
     @Transactional
     @Override
@@ -49,5 +56,20 @@ public class SnapServiceImpl implements SnapService {
         log.info("스냅 생성 완료: id={}, userId={}", snap.getId(), userId);
 
         return snapMapper.toDto(snap);
+    }
+
+    @Override
+    public PageResponse<SnapDto> findAllByUserId(UUID userId, Instant createdAt, Pageable pageable) {
+        Slice<SnapDto> slice = snapRepository.findAllByUserId(userId,
+                Optional.ofNullable(createdAt).orElse(Instant.now()),
+                pageable)
+            .map(snapMapper::toDto);
+
+        Instant nextCursor = null;
+        if (!slice.getContent().isEmpty()) {
+            nextCursor = slice.getContent().get(slice.getContent().size() - 1)
+                .createdAt();
+        }
+        return pageResponseMapper.fromSlice(slice, nextCursor);
     }
 }

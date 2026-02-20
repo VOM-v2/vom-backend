@@ -8,7 +8,8 @@ public record SnapDto(
     UUID id,
     Instant createdAt,
     UserDto user,
-    String content
+    String content,
+    String snapImageUrl
 ) {
 
 }

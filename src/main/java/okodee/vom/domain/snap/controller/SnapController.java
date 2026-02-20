@@ -1,21 +1,25 @@
 package okodee.vom.domain.snap.controller;
 
 import jakarta.validation.Valid;
-import java.util.Optional;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okodee.vom.domain.profile.dto.ProfileDto;
-import okodee.vom.domain.profile.dto.ProfileUpdateRequest;
 import okodee.vom.domain.snap.dto.SnapCreateRequest;
 import okodee.vom.domain.snap.dto.SnapDto;
 import okodee.vom.domain.snap.service.SnapService;
+import okodee.vom.global.common.PageResponse;
 import okodee.vom.global.security.VomUserDetails;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,6 +46,25 @@ public class SnapController {
         log.info("스냅 생성 요청: userId={}, request={}", userId, request);
 
         return ResponseEntity.ok(snapService.create(userId, request, image));
+    }
+
+    @GetMapping
+    public ResponseEntity<PageResponse<SnapDto>> findAllByUserId(
+        @RequestParam("userId") UUID userId,
+        @RequestParam(value = "cursor", required=false) Instant cursor,
+        @PageableDefault(
+            size = 50,
+            page = 0,
+            sort = "createdAt",
+            direction = Direction.DESC
+        ) Pageable pageable) {
+        log.info("사용자별 스냅 목록 조회 요청: userId={}, cursor={}, pageable={}", userId, cursor, pageable);
+
+        PageResponse<SnapDto> snaps = snapService.findAllByUserId(userId, cursor, pageable);
+
+        log.debug("사용자별 스냅 목록 조회 응답: totalElements={}", snaps.totalElements());
+
+        return ResponseEntity.ok(snaps);
     }
 
     /**
