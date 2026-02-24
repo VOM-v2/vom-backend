@@ -11,7 +11,6 @@ import okodee.vom.domain.user.exception.UserNotFoundException;
 import okodee.vom.domain.user.mapper.UserMapper;
 import okodee.vom.domain.user.repository.UserRepository;
 import okodee.vom.global.util.S3ImageStorage;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,6 +43,10 @@ public class ProfileServiceImpl implements ProfileService {
             log.debug("프로필 이미지 업로드 시작");
             return s3ImageStorage.uploadImage(img, "profileImage/");
         }).orElse(null);
+
+        if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isBlank()) {
+            s3ImageStorage.deleteImage(user.getProfileImageUrl());
+        }
 
         user.update(
             profileUpdateRequest.name(),
