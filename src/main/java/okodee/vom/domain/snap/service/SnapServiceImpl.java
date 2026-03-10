@@ -45,15 +45,20 @@ public class SnapServiceImpl implements SnapService {
 
         log.debug("스냅 이미지 업로드 시작");
         String snapImageUrl = s3ImageStorage.uploadImage(image, "snapImage/");
+        Snap snap;
+        try {
+            String content = snapCreateRequest.content();
+            snap = new Snap(
+                user,
+                content,
+                snapImageUrl
+            );
+            snapRepository.save(snap);
 
-        String content = snapCreateRequest.content();
-        Snap snap = new Snap(
-            user,
-            content,
-            snapImageUrl
-        );
-
-        snapRepository.save(snap);
+        } catch (RuntimeException e) {
+            s3ImageStorage.deleteImage(snapImageUrl);
+            throw e;
+        }
 
         log.info("스냅 생성 완료: id={}, userId={}", snap.getId(), userId);
 
@@ -87,11 +92,13 @@ public class SnapServiceImpl implements SnapService {
             throw new UnauthorizedAccessException();
         }
 
-        if (snap.getSnapImageUrl() != null && !snap.getSnapImageUrl().isBlank()) {
-            s3ImageStorage.deleteImage(snap.getSnapImageUrl());
+        String snapImageUrl = snap.getSnapImageUrl();
+        snapRepository.delete(snap);
+
+        if (snapImageUrl != null && snapImageUrl.isBlank()) {
+            s3ImageStorage.deleteImage(snapImageUrl);
         }
 
-        snapRepository.delete(snap);
         log.info("스냅 삭제 완료: id={}", snapId);
     }
 }
