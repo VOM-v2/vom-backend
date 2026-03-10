@@ -1,7 +1,6 @@
 package okodee.vom.domain.snap.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,6 @@ import okodee.vom.global.security.VomUserDetails;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

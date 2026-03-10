@@ -20,7 +20,6 @@ import okodee.vom.global.exception.UnauthorizedAccessException;
 import okodee.vom.global.util.S3ImageStorage;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
