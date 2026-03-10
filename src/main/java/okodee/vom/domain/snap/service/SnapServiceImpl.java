@@ -95,7 +95,7 @@ public class SnapServiceImpl implements SnapService {
         String snapImageUrl = snap.getSnapImageUrl();
         snapRepository.delete(snap);
 
-        if (snapImageUrl != null && snapImageUrl.isBlank()) {
+        if (snapImageUrl != null && !snapImageUrl.isBlank()) {
             s3ImageStorage.deleteImage(snapImageUrl);
         }
 
