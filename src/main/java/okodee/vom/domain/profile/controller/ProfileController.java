@@ -40,8 +40,6 @@ public class ProfileController implements ProfileApi {
         return ResponseEntity.status(HttpStatus.OK).body(profile);
     }
 
-    // ==================== 신규 엔드포인트 (/me) ====================
-
     @Override
     @PatchMapping(
         path = "/profiles/me",
@@ -55,35 +53,6 @@ public class ProfileController implements ProfileApi {
         UUID userId = extractUserIdFromAuthentication(authentication);
 
         log.info("[NEW] 사용자 프로필 수정 요청: userId={}, request={}", userId, request);
-
-        return updateProfileInternal(userId, request, image);
-    }
-
-    // ==================== 레거시 엔드포인트 ====================
-
-    @Override
-    @Deprecated(since = "2.0", forRemoval = true)
-    @PatchMapping(
-        path = "/users/{userId}/profiles",
-        consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<ProfileDto> updateProfile(
-        @PathVariable("userId") UUID userId,
-        @RequestPart("request") @Valid ProfileUpdateRequest request,
-        @RequestPart(value = "image", required = false) MultipartFile image,
-        Authentication authentication
-    ) {
-        // 보안 검증: PathVariable userId와 JWT userId 일치 확인
-        UUID authenticatedUserId = extractUserIdFromAuthentication(authentication);
-
-        if (!userId.equals(authenticatedUserId)) {
-            log.warn("[DEPRECATED] 권한 없는 프로필 수정 시도: pathUserId={}, authUserId={}",
-                userId, authenticatedUserId);
-            throw new IllegalArgumentException("본인의 프로필만 수정할 수 있습니다.");
-        }
-
-        log.warn("[DEPRECATED] 레거시 엔드포인트 사용: userId={}, 대체 엔드포인트=/api/v1/profiles/me",
-            userId);
 
         return updateProfileInternal(userId, request, image);
     }

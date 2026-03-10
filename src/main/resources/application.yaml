@@ -12,3 +12,8 @@ vom:
       expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000} # 7 days
     cookie:
       secure: false
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
