@@ -87,6 +87,11 @@ public class GlobalExceptionHandler {
             // Snap
             case SNAP_NOT_FOUND -> HttpStatus.NOT_FOUND;
 
+            // DM
+            case DM_ROOM_ALREADY_EXISTS -> HttpStatus.CONFLICT;
+            case DM_ROOM_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case DM_UNAUTHORIZED -> HttpStatus.FORBIDDEN;
+
             // Server
             case INTERNAL_SERVER_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
