@@ -1,7 +1,10 @@
 package okodee.vom.domain.dm.mapper;
 
+import java.util.UUID;
+import okodee.vom.domain.dm.dto.DirectMessageRoomListResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomResponse;
 import okodee.vom.domain.dm.entity.DirectMessageRoom;
+import okodee.vom.domain.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -12,4 +15,14 @@ public interface DirectMessageRoomMapper {
     @Mapping(source = "receiver.id", target = "receiverId")
     @Mapping(source = "receiver.nickname", target = "receiverNickname")
     DirectMessageRoomResponse toResponse(DirectMessageRoom room);
+
+    default DirectMessageRoomListResponse toListResponse(DirectMessageRoom room, UUID currentUserId) {
+        boolean isSender = room.getSender().getId().equals(currentUserId);
+        User partner = isSender ? room.getReceiver() : room.getSender();
+        return new DirectMessageRoomListResponse(
+            room.getId(),
+            partner.getId(),
+            partner.getNickname()
+        );
+    }
 }

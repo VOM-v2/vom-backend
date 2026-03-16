@@ -1,8 +1,10 @@
 package okodee.vom.domain.dm.service;
 
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import okodee.vom.domain.dm.dto.DirectMessageRoomCreateRequest;
+import okodee.vom.domain.dm.dto.DirectMessageRoomListResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomResponse;
 import okodee.vom.domain.dm.entity.DirectMessageRoom;
 import okodee.vom.domain.dm.exception.DMRoomAlreadyExistsException;
@@ -41,5 +43,15 @@ public class DirectMessageService {
         roomRepository.save(room);
 
         return roomMapper.toResponse(room);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DirectMessageRoomListResponse> getRooms(UUID currentUserId) {
+
+        List<DirectMessageRoom> rooms = roomRepository.findAllBySenderIdOrReceiverId(currentUserId, currentUserId);
+
+        return rooms.stream()
+            .map(room -> roomMapper.toListResponse(room, currentUserId))
+            .toList();
     }
 }
