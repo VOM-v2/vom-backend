@@ -3,12 +3,18 @@ package okodee.vom.domain.dm.service;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import okodee.vom.domain.dm.dto.DirectMessageResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomCreateRequest;
 import okodee.vom.domain.dm.dto.DirectMessageRoomListResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomResponse;
+import okodee.vom.domain.dm.entity.DirectMessage;
 import okodee.vom.domain.dm.entity.DirectMessageRoom;
 import okodee.vom.domain.dm.exception.DMRoomAlreadyExistsException;
+import okodee.vom.domain.dm.exception.DMRoomNotFoundException;
+import okodee.vom.domain.dm.exception.DMUnauthorizedException;
+import okodee.vom.domain.dm.mapper.DirectMessageMapper;
 import okodee.vom.domain.dm.mapper.DirectMessageRoomMapper;
+import okodee.vom.domain.dm.repository.DirectMessageRepository;
 import okodee.vom.domain.dm.repository.DirectMessageRoomRepository;
 import okodee.vom.domain.user.entity.User;
 import okodee.vom.domain.user.exception.UserNotFoundException;
@@ -21,8 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class DirectMessageService {
 
     private final DirectMessageRoomRepository roomRepository;
+    private final DirectMessageRepository messageRepository;
     private final UserRepository userRepository;
     private final DirectMessageRoomMapper roomMapper;
+    private final DirectMessageMapper messageMapper;
 
     @Transactional
     public DirectMessageRoomResponse createRoom(UUID currentUserId, DirectMessageRoomCreateRequest request) {
@@ -52,6 +60,27 @@ public class DirectMessageService {
 
         return rooms.stream()
             .map(room -> roomMapper.toListResponse(room, currentUserId))
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<DirectMessageResponse> getMessages(UUID currentUserId, UUID roomId) {
+
+        DirectMessageRoom room = roomRepository.findById(roomId)
+            .orElseThrow(() -> new DMRoomNotFoundException());
+
+        // 해당 방의 참여자인지 검증
+        boolean isParticipant = room.getSender().getId().equals(currentUserId)
+            || room.getReceiver().getId().equals(currentUserId);
+
+        if (!isParticipant) {
+            throw new DMUnauthorizedException();
+        }
+
+        List<DirectMessage> messages = messageRepository.findAllByRoomIdOrderByCreatedAtAsc(roomId);
+
+        return messages.stream()
+            .map(messageMapper::toResponse)
             .toList();
     }
 }
