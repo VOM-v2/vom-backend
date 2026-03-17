@@ -8,4 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface DirectMessageRepository extends JpaRepository<DirectMessage, UUID> {
 
     List<DirectMessage> findAllByRoomIdOrderByCreatedAtAsc(UUID roomId);
+
+    // 특정 방에서 내가 받은 메시지 중 읽지 않은 것만 조회
+    List<DirectMessage> findAllByRoomIdAndSenderIdNotAndIsReadFalse(UUID roomId, UUID senderId);
+
+    long countByRoomIdAndSenderIdNotAndIsReadFalse(UUID roomId, UUID senderId);
 }

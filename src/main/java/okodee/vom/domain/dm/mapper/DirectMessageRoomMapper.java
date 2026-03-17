@@ -16,13 +16,14 @@ public interface DirectMessageRoomMapper {
     @Mapping(source = "receiver.nickname", target = "receiverNickname")
     DirectMessageRoomResponse toResponse(DirectMessageRoom room);
 
-    default DirectMessageRoomListResponse toListResponse(DirectMessageRoom room, UUID currentUserId) {
+    default DirectMessageRoomListResponse toListResponse(DirectMessageRoom room, UUID currentUserId, long unreadCount) {
         boolean isSender = room.getSender().getId().equals(currentUserId);
         User partner = isSender ? room.getReceiver() : room.getSender();
         return new DirectMessageRoomListResponse(
             room.getId(),
             partner.getId(),
-            partner.getNickname()
+            partner.getNickname(),
+            unreadCount
         );
     }
 }

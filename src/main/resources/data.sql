@@ -67,7 +67,7 @@ INSERT INTO direct_messages (id, room_id, sender_id, content, is_read, created_a
 VALUES ('770e8400-e29b-41d4-a716-446655440001',
         '660e8400-e29b-41d4-a716-446655440001',
         '550e8400-e29b-41d4-a716-446655440001',
-        '안녕하세요!', false, NOW() - INTERVAL '10 minutes'),
+        '안녕하세요!', true, NOW() - INTERVAL '10 minutes'),
 
        ('770e8400-e29b-41d4-a716-446655440002',
         '660e8400-e29b-41d4-a716-446655440001',
@@ -77,7 +77,7 @@ VALUES ('770e8400-e29b-41d4-a716-446655440001',
        ('770e8400-e29b-41d4-a716-446655440003',
         '660e8400-e29b-41d4-a716-446655440001',
         '550e8400-e29b-41d4-a716-446655440001',
-        'VOM 프로젝트 잘 되고 있나요?', false, NOW() - INTERVAL '5 minutes'),
+        'VOM 프로젝트 잘 되고 있나요?', true, NOW() - INTERVAL '5 minutes'),
 
        ('770e8400-e29b-41d4-a716-446655440004',
         '660e8400-e29b-41d4-a716-446655440001',

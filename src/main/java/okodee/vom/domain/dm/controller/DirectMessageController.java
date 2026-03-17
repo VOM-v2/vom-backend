@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,6 +58,17 @@ public class DirectMessageController {
         List<DirectMessageResponse> response = directMessageService.getMessages(currentUserId, roomId);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{roomId}")
+    public ResponseEntity<Void> markAsRead(
+        Authentication authentication,
+        @PathVariable UUID roomId) {
+
+        UUID currentUserId = extractUserIdFromAuthentication(authentication);
+        directMessageService.markAsRead(currentUserId, roomId);
+
+        return ResponseEntity.noContent().build();
     }
 
     private UUID extractUserIdFromAuthentication(Authentication authentication) {

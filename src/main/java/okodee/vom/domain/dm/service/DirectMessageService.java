@@ -59,7 +59,11 @@ public class DirectMessageService {
         List<DirectMessageRoom> rooms = roomRepository.findAllBySenderIdOrReceiverId(currentUserId, currentUserId);
 
         return rooms.stream()
-            .map(room -> roomMapper.toListResponse(room, currentUserId))
+            .map(room -> {
+                long unreadCount = messageRepository.countByRoomIdAndSenderIdNotAndIsReadFalse(
+                    room.getId(), currentUserId);
+                return roomMapper.toListResponse(room, currentUserId, unreadCount);
+            })
             .toList();
     }
 
@@ -82,5 +86,25 @@ public class DirectMessageService {
         return messages.stream()
             .map(messageMapper::toResponse)
             .toList();
+    }
+
+    @Transactional
+    public void markAsRead(UUID currentUserId, UUID roomId) {
+
+        DirectMessageRoom room = roomRepository.findById(roomId)
+            .orElseThrow(() -> new DMRoomNotFoundException());
+
+        boolean isParticipant = room.getSender().getId().equals(currentUserId)
+            || room.getReceiver().getId().equals(currentUserId);
+
+        if (!isParticipant) {
+            throw new DMUnauthorizedException();
+        }
+
+        // 상대방이 보낸 메시지 중 안 읽은 것만 읽음 처리
+        List<DirectMessage> unreadMessages = messageRepository
+            .findAllByRoomIdAndSenderIdNotAndIsReadFalse(roomId, currentUserId);
+
+        unreadMessages.forEach(DirectMessage::markAsRead);
     }
 }
