@@ -10,6 +10,7 @@ import okodee.vom.domain.dm.dto.DirectMessageRoomCreateRequest;
 import okodee.vom.domain.dm.dto.DirectMessageRoomListResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomResponse;
 import okodee.vom.domain.dm.dto.DirectMessageSendRequest;
+import okodee.vom.domain.dm.dto.DirectMessageSendResult;
 import okodee.vom.domain.dm.service.DirectMessageService;
 import okodee.vom.global.security.VomUserDetails;
 import org.springframework.http.HttpStatus;
@@ -88,10 +89,17 @@ public class DirectMessageController {
         VomUserDetails userDetails = (VomUserDetails) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
         UUID currentUserId = userDetails.getId();
 
-        DirectMessageResponse response = directMessageService.sendMessage(currentUserId, roomId, request);
+        DirectMessageSendResult result = directMessageService.sendMessage(currentUserId, roomId, request);
 
         // 방 구독자 전체에게 메시지 브로드캐스트
-        messagingTemplate.convertAndSend("/topic/dm/" + roomId, response);
+        messagingTemplate.convertAndSend("/topic/dm/" + roomId, result.response());
+
+        // 상대방에게 알림 전송
+        messagingTemplate.convertAndSendToUser(
+            result.receiverId().toString(),
+            "/queue/notifications",
+            result.notification()
+        );
     }
 
     private UUID extractUserIdFromAuthentication(Authentication authentication) {

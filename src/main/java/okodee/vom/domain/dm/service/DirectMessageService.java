@@ -8,6 +8,7 @@ import okodee.vom.domain.dm.dto.DirectMessageRoomCreateRequest;
 import okodee.vom.domain.dm.dto.DirectMessageRoomListResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomResponse;
 import okodee.vom.domain.dm.dto.DirectMessageSendRequest;
+import okodee.vom.domain.dm.dto.DirectMessageSendResult;
 import okodee.vom.domain.dm.entity.DirectMessage;
 import okodee.vom.domain.dm.entity.DirectMessageRoom;
 import okodee.vom.domain.dm.exception.DMRoomAlreadyExistsException;
@@ -110,7 +111,7 @@ public class DirectMessageService {
     }
 
     @Transactional
-    public DirectMessageResponse sendMessage(UUID currentUserId, UUID roomId, DirectMessageSendRequest request) {
+    public DirectMessageSendResult sendMessage(UUID currentUserId, UUID roomId, DirectMessageSendRequest request) {
 
         DirectMessageRoom room = roomRepository.findById(roomId)
             .orElseThrow(() -> new DMRoomNotFoundException());
@@ -128,6 +129,15 @@ public class DirectMessageService {
         DirectMessage message = DirectMessage.create(room, sender, request.content());
         messageRepository.save(message);
 
-        return messageMapper.toResponse(message);
+        // 상대방 ID 계산
+        UUID receiverId = room.getSender().getId().equals(currentUserId)
+            ? room.getReceiver().getId()
+            : room.getSender().getId();
+
+        return new DirectMessageSendResult(
+            messageMapper.toResponse(message),
+            messageMapper.toNotificationResponse(message),
+            receiverId
+        );
     }
 }
