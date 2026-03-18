@@ -7,6 +7,7 @@ import okodee.vom.domain.dm.dto.DirectMessageResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomCreateRequest;
 import okodee.vom.domain.dm.dto.DirectMessageRoomListResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomResponse;
+import okodee.vom.domain.dm.dto.DirectMessageSendRequest;
 import okodee.vom.domain.dm.entity.DirectMessage;
 import okodee.vom.domain.dm.entity.DirectMessageRoom;
 import okodee.vom.domain.dm.exception.DMRoomAlreadyExistsException;
@@ -106,5 +107,27 @@ public class DirectMessageService {
             .findAllByRoomIdAndSenderIdNotAndIsReadFalse(roomId, currentUserId);
 
         unreadMessages.forEach(DirectMessage::markAsRead);
+    }
+
+    @Transactional
+    public DirectMessageResponse sendMessage(UUID currentUserId, UUID roomId, DirectMessageSendRequest request) {
+
+        DirectMessageRoom room = roomRepository.findById(roomId)
+            .orElseThrow(() -> new DMRoomNotFoundException());
+
+        boolean isParticipant = room.getSender().getId().equals(currentUserId)
+            || room.getReceiver().getId().equals(currentUserId);
+
+        if (!isParticipant) {
+            throw new DMUnauthorizedException();
+        }
+
+        User sender = userRepository.findById(currentUserId)
+            .orElseThrow(() -> UserNotFoundException.withId(currentUserId));
+
+        DirectMessage message = DirectMessage.create(room, sender, request.content());
+        messageRepository.save(message);
+
+        return messageMapper.toResponse(message);
     }
 }

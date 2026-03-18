@@ -1,6 +1,7 @@
 package okodee.vom.domain.dm.controller;
 
 import jakarta.validation.Valid;
+import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -8,10 +9,16 @@ import okodee.vom.domain.dm.dto.DirectMessageResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomCreateRequest;
 import okodee.vom.domain.dm.dto.DirectMessageRoomListResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomResponse;
+import okodee.vom.domain.dm.dto.DirectMessageSendRequest;
 import okodee.vom.domain.dm.service.DirectMessageService;
 import okodee.vom.global.security.VomUserDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -27,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DirectMessageController {
 
     private final DirectMessageService directMessageService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping
     public ResponseEntity<DirectMessageRoomResponse> createRoom(
@@ -69,6 +77,21 @@ public class DirectMessageController {
         directMessageService.markAsRead(currentUserId, roomId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @MessageMapping("/dm/{roomId}/send")
+    public void sendMessage(
+        @DestinationVariable UUID roomId,
+        @Payload DirectMessageSendRequest request,
+        Principal principal) {
+
+        VomUserDetails userDetails = (VomUserDetails) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+        UUID currentUserId = userDetails.getId();
+
+        DirectMessageResponse response = directMessageService.sendMessage(currentUserId, roomId, request);
+
+        // 방 구독자 전체에게 메시지 브로드캐스트
+        messagingTemplate.convertAndSend("/topic/dm/" + roomId, response);
     }
 
     private UUID extractUserIdFromAuthentication(Authentication authentication) {
