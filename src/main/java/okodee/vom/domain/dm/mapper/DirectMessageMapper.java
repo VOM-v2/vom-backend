@@ -14,10 +14,11 @@ public interface DirectMessageMapper {
     DirectMessageResponse toResponse(DirectMessage message);
 
     default DirectMessageNotificationResponse toNotificationResponse(DirectMessage message) {
+        String senderNickname = message.getSender().getNickname();
         return new DirectMessageNotificationResponse(
             message.getRoom().getId(),
             message.getSender().getId(),
-            message.getSender().getNickname(),
+            senderNickname != null ? senderNickname : "알 수 없음",
             message.getContent()
         );
     }

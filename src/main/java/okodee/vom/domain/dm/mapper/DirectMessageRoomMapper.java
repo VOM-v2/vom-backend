@@ -19,10 +19,12 @@ public interface DirectMessageRoomMapper {
     default DirectMessageRoomListResponse toListResponse(DirectMessageRoom room, UUID currentUserId, long unreadCount) {
         boolean isSender = room.getSender().getId().equals(currentUserId);
         User partner = isSender ? room.getReceiver() : room.getSender();
+        String partnerNickname = partner.getNickname() != null ? partner.getNickname() : "알 수 없음";
+
         return new DirectMessageRoomListResponse(
             room.getId(),
             partner.getId(),
-            partner.getNickname(),
+            partnerNickname,
             unreadCount
         );
     }
