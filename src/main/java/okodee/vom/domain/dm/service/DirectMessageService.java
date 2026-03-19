@@ -13,6 +13,7 @@ import okodee.vom.domain.dm.entity.DirectMessage;
 import okodee.vom.domain.dm.entity.DirectMessageRoom;
 import okodee.vom.domain.dm.exception.DMRoomAlreadyExistsException;
 import okodee.vom.domain.dm.exception.DMRoomNotFoundException;
+import okodee.vom.domain.dm.exception.DMSelfChatNotAllowedException;
 import okodee.vom.domain.dm.exception.DMUnauthorizedException;
 import okodee.vom.domain.dm.mapper.DirectMessageMapper;
 import okodee.vom.domain.dm.mapper.DirectMessageRoomMapper;
@@ -36,6 +37,9 @@ public class DirectMessageService {
 
     @Transactional
     public DirectMessageRoomResponse createRoom(UUID currentUserId, DirectMessageRoomCreateRequest request) {
+        if (currentUserId.equals(request.receiverId())) {
+            throw new DMSelfChatNotAllowedException();
+        }
 
         roomRepository.findBySenderIdAndReceiverId(currentUserId, request.receiverId())
             .or(() -> roomRepository.findBySenderIdAndReceiverId(request.receiverId(), currentUserId))

@@ -91,6 +91,7 @@ public class GlobalExceptionHandler {
             case DM_ROOM_ALREADY_EXISTS -> HttpStatus.CONFLICT;
             case DM_ROOM_NOT_FOUND -> HttpStatus.NOT_FOUND;
             case DM_UNAUTHORIZED -> HttpStatus.FORBIDDEN;
+            case DM_SELF_CHAT_NOT_ALLOWED -> HttpStatus.BAD_REQUEST;
 
             // Server
             case INTERNAL_SERVER_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;

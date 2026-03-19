@@ -25,6 +25,7 @@ public enum ErrorCode {
     DM_ROOM_ALREADY_EXISTS("이미 존재하는 DM 방입니다."),
     DM_ROOM_NOT_FOUND("존재하지 않는 DM 방입니다."),
     DM_UNAUTHORIZED("해당 DM 방에 접근 권한이 없습니다."),
+    DM_SELF_CHAT_NOT_ALLOWED("자기 자신과의 DM은 허용되지 않습니다."),
 
     // Server 에러 코드
     INTERNAL_SERVER_ERROR("서버 내부 오류가 발생했습니다."),
