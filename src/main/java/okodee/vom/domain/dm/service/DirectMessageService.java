@@ -22,6 +22,7 @@ import okodee.vom.domain.dm.repository.DirectMessageRoomRepository;
 import okodee.vom.domain.user.entity.User;
 import okodee.vom.domain.user.exception.UserNotFoundException;
 import okodee.vom.domain.user.repository.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,7 +55,11 @@ public class DirectMessageService {
             .orElseThrow(() -> UserNotFoundException.withId(request.receiverId()));
 
         DirectMessageRoom room = DirectMessageRoom.create(sender, receiver);
-        roomRepository.save(room);
+        try {
+            roomRepository.save(room);
+        } catch (DataIntegrityViolationException e) {
+            throw new DMRoomAlreadyExistsException();
+        }
 
         return roomMapper.toResponse(room);
     }

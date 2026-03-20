@@ -5,6 +5,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,15 @@ import okodee.vom.domain.user.entity.User;
 import okodee.vom.global.common.BaseEntity;
 
 @Entity
-@Table(name = "direct_message_rooms")
+@Table(
+    name = "direct_message_rooms",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uq_dm_rooms_participants",
+            columnNames = {"sender_id", "receiver_id"}
+        )
+    }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DirectMessageRoom extends BaseEntity {
