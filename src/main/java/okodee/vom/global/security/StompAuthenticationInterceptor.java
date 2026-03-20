@@ -37,6 +37,11 @@ public class StompAuthenticationInterceptor implements ChannelInterceptor {
 
             try {
                 token = token.substring(7);
+
+                if (!jwtTokenProvider.validateAccessToken(token)) {
+                    throw new IllegalArgumentException("유효하지 않은 인증 토큰입니다.");
+                }
+
                 String email = jwtTokenProvider.getEmailFromToken(token);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
