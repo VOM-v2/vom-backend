@@ -31,9 +31,12 @@ public class StompAuthenticationInterceptor implements ChannelInterceptor {
 
             String token = accessor.getFirstNativeHeader("Authorization");
 
-            if (token != null && token.startsWith("Bearer ")) {
-                token = token.substring(7);
+            if (token == null || !token.startsWith("Bearer ")) {
+                throw new IllegalArgumentException("Authorization 헤더가 필요합니다.");
+            }
 
+            try {
+                token = token.substring(7);
                 String email = jwtTokenProvider.getEmailFromToken(token);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
@@ -42,6 +45,8 @@ public class StompAuthenticationInterceptor implements ChannelInterceptor {
                         userDetails, null, userDetails.getAuthorities());
 
                 accessor.setUser(authentication);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("유효하지 않은 인증 토큰입니다.", e);
             }
         }
 
