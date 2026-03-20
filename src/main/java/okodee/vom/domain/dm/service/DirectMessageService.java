@@ -1,7 +1,9 @@
 package okodee.vom.domain.dm.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import okodee.vom.domain.dm.dto.DirectMessageResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomCreateRequest;
@@ -71,10 +73,22 @@ public class DirectMessageService {
 
         List<DirectMessageRoom> rooms = roomRepository.findAllBySenderIdOrReceiverId(currentUserId, currentUserId);
 
+        List<UUID> roomIds = rooms.stream()
+            .map(DirectMessageRoom::getId)
+            .toList();
+
+        // 미읽음 수를 한 번에 조회 후 Map으로 변환
+        Map<UUID, Long> unreadCountMap = messageRepository
+            .countUnreadByRoomIds(currentUserId, roomIds)
+            .stream()
+            .collect(Collectors.toMap(
+                row -> (UUID) row[0],
+                row -> (Long) row[1]
+            ));
+
         return rooms.stream()
             .map(room -> {
-                long unreadCount = messageRepository.countByRoomIdAndSenderIdNotAndIsReadFalse(
-                    room.getId(), currentUserId);
+                long unreadCount = unreadCountMap.getOrDefault(room.getId(), 0L);
                 return roomMapper.toListResponse(room, currentUserId, unreadCount);
             })
             .toList();
