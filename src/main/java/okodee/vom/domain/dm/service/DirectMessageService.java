@@ -93,7 +93,7 @@ public class DirectMessageService {
             throw new DMUnauthorizedException();
         }
 
-        return messageRepository.findByRoomIdOrderByCreatedAtAsc(roomId, pageable)
+        return messageRepository.findByRoomIdOrderByCreatedAtDesc(roomId, pageable)
             .map(messageMapper::toResponse);
     }
 
