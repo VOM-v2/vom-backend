@@ -6,6 +6,7 @@ import okodee.vom.domain.dm.entity.DirectMessage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,5 +25,18 @@ public interface DirectMessageRepository extends JpaRepository<DirectMessage, UU
     List<Object[]> countUnreadByRoomIds(
         @Param("currentUserId") UUID currentUserId,
         @Param("roomIds") List<UUID> roomIds
+    );
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            update DirectMessage m
+            set m.isRead = true
+            where m.room.id = :roomId
+            and m.sender.id <> :currentUserId
+            and m.isRead = false
+        """)
+    int markAllAsReadByRoomIdAndSenderIdNot(
+        @Param("roomId") UUID roomId,
+        @Param("currentUserId") UUID currentUserId
     );
 }

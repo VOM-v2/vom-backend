@@ -124,11 +124,7 @@ public class DirectMessageService {
             throw new DMUnauthorizedException();
         }
 
-        // 상대방이 보낸 메시지 중 안 읽은 것만 읽음 처리
-        List<DirectMessage> unreadMessages = messageRepository
-            .findAllByRoomIdAndSenderIdNotAndIsReadFalse(roomId, currentUserId);
-
-        unreadMessages.forEach(DirectMessage::markAsRead);
+        messageRepository.markAllAsReadByRoomIdAndSenderIdNot(roomId, currentUserId);
     }
 
     @Transactional
