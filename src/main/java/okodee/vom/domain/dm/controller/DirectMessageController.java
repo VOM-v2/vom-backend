@@ -13,6 +13,8 @@ import okodee.vom.domain.dm.dto.DirectMessageSendRequest;
 import okodee.vom.domain.dm.dto.DirectMessageSendResult;
 import okodee.vom.domain.dm.service.DirectMessageService;
 import okodee.vom.global.security.VomUserDetails;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -59,12 +61,13 @@ public class DirectMessageController {
     }
 
     @GetMapping("/{roomId}")
-    public ResponseEntity<List<DirectMessageResponse>> getMessages(
+    public ResponseEntity<Page<DirectMessageResponse>> getMessages(
         Authentication authentication,
-        @PathVariable UUID roomId) {
+        @PathVariable UUID roomId,
+        Pageable pageable) {
 
         UUID currentUserId = extractUserIdFromAuthentication(authentication);
-        List<DirectMessageResponse> response = directMessageService.getMessages(currentUserId, roomId);
+        Page<DirectMessageResponse> response = directMessageService.getMessages(currentUserId, roomId, pageable);
 
         return ResponseEntity.ok(response);
     }

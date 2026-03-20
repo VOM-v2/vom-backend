@@ -23,6 +23,8 @@ import okodee.vom.domain.user.entity.User;
 import okodee.vom.domain.user.exception.UserNotFoundException;
 import okodee.vom.domain.user.repository.UserRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,12 +81,11 @@ public class DirectMessageService {
     }
 
     @Transactional(readOnly = true)
-    public List<DirectMessageResponse> getMessages(UUID currentUserId, UUID roomId) {
+    public Page<DirectMessageResponse> getMessages(UUID currentUserId, UUID roomId, Pageable pageable) {
 
         DirectMessageRoom room = roomRepository.findById(roomId)
             .orElseThrow(() -> new DMRoomNotFoundException());
 
-        // 해당 방의 참여자인지 검증
         boolean isParticipant = room.getSender().getId().equals(currentUserId)
             || room.getReceiver().getId().equals(currentUserId);
 
@@ -92,11 +93,8 @@ public class DirectMessageService {
             throw new DMUnauthorizedException();
         }
 
-        List<DirectMessage> messages = messageRepository.findAllByRoomIdOrderByCreatedAtAsc(roomId);
-
-        return messages.stream()
-            .map(messageMapper::toResponse)
-            .toList();
+        return messageRepository.findByRoomIdOrderByCreatedAtAsc(roomId, pageable)
+            .map(messageMapper::toResponse);
     }
 
     @Transactional
