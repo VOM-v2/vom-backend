@@ -5,6 +5,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import okodee.vom.domain.dm.dto.DirectMessageResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomCreateRequest;
 import okodee.vom.domain.dm.dto.DirectMessageRoomListResponse;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/direct-messages")
 @RequiredArgsConstructor
@@ -45,8 +47,9 @@ public class DirectMessageController {
         @RequestBody @Valid DirectMessageRoomCreateRequest request) {
 
         UUID currentUserId = extractUserIdFromAuthentication(authentication);
-        DirectMessageRoomResponse response = directMessageService.createRoom(currentUserId, request);
+        log.info("DM 방 생성 요청: currentUserId={}, receiverId={}", currentUserId, request.receiverId());
 
+        DirectMessageRoomResponse response = directMessageService.createRoom(currentUserId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -55,8 +58,9 @@ public class DirectMessageController {
         Authentication authentication) {
 
         UUID currentUserId = extractUserIdFromAuthentication(authentication);
-        List<DirectMessageRoomListResponse> response = directMessageService.getRooms(currentUserId);
+        log.info("DM 방 목록 조회 요청: currentUserId={}", currentUserId);
 
+        List<DirectMessageRoomListResponse> response = directMessageService.getRooms(currentUserId);
         return ResponseEntity.ok(response);
     }
 
@@ -67,8 +71,9 @@ public class DirectMessageController {
         Pageable pageable) {
 
         UUID currentUserId = extractUserIdFromAuthentication(authentication);
-        Page<DirectMessageResponse> response = directMessageService.getMessages(currentUserId, roomId, pageable);
+        log.info("메시지 내역 조회 요청: currentUserId={}, roomId={}", currentUserId, roomId);
 
+        Page<DirectMessageResponse> response = directMessageService.getMessages(currentUserId, roomId, pageable);
         return ResponseEntity.ok(response);
     }
 
@@ -78,8 +83,9 @@ public class DirectMessageController {
         @PathVariable UUID roomId) {
 
         UUID currentUserId = extractUserIdFromAuthentication(authentication);
-        directMessageService.markAsRead(currentUserId, roomId);
+        log.info("읽음 처리 요청: currentUserId={}, roomId={}", currentUserId, roomId);
 
+        directMessageService.markAsRead(currentUserId, roomId);
         return ResponseEntity.noContent().build();
     }
 
@@ -92,6 +98,8 @@ public class DirectMessageController {
         VomUserDetails userDetails = (VomUserDetails) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
         UUID currentUserId = userDetails.getId();
 
+        log.info("메시지 전송 요청: currentUserId={}, roomId={}", currentUserId, roomId);
+
         DirectMessageSendResult result = directMessageService.sendMessage(currentUserId, roomId, request);
 
         // 방 구독자 전체에게 메시지 브로드캐스트
@@ -103,6 +111,8 @@ public class DirectMessageController {
             "/queue/notifications",
             result.notification()
         );
+
+        log.debug("메시지 브로드캐스트 완료: roomId={}, receiverId={}", roomId, result.receiverId());
     }
 
     private UUID extractUserIdFromAuthentication(Authentication authentication) {

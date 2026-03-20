@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import okodee.vom.domain.dm.dto.DirectMessageResponse;
 import okodee.vom.domain.dm.dto.DirectMessageRoomCreateRequest;
 import okodee.vom.domain.dm.dto.DirectMessageRoomListResponse;
@@ -30,6 +31,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DirectMessageService {
@@ -42,6 +44,8 @@ public class DirectMessageService {
 
     @Transactional
     public DirectMessageRoomResponse createRoom(UUID currentUserId, DirectMessageRoomCreateRequest request) {
+        log.debug("DM 방 생성 시작: currentUserId={}, receiverId={}", currentUserId, request.receiverId());
+
         if (currentUserId.equals(request.receiverId())) {
             throw new DMSelfChatNotAllowedException();
         }
@@ -65,11 +69,13 @@ public class DirectMessageService {
             throw new DMRoomAlreadyExistsException();
         }
 
+        log.info("DM 방 생성 완료: roomId={}, senderId={}, receiverId={}", room.getId(), currentUserId, request.receiverId());
         return roomMapper.toResponse(room);
     }
 
     @Transactional(readOnly = true)
     public List<DirectMessageRoomListResponse> getRooms(UUID currentUserId) {
+        log.debug("DM 방 목록 조회 시작: currentUserId={}", currentUserId);
 
         List<DirectMessageRoom> rooms = roomRepository.findAllBySenderIdOrReceiverId(currentUserId, currentUserId);
 
@@ -77,7 +83,6 @@ public class DirectMessageService {
             .map(DirectMessageRoom::getId)
             .toList();
 
-        // 미읽음 수를 한 번에 조회 후 Map으로 변환
         Map<UUID, Long> unreadCountMap = messageRepository
             .countUnreadByRoomIds(currentUserId, roomIds)
             .stream()
@@ -86,16 +91,20 @@ public class DirectMessageService {
                 row -> (Long) row[1]
             ));
 
-        return rooms.stream()
+        List<DirectMessageRoomListResponse> response = rooms.stream()
             .map(room -> {
                 long unreadCount = unreadCountMap.getOrDefault(room.getId(), 0L);
                 return roomMapper.toListResponse(room, currentUserId, unreadCount);
             })
             .toList();
+
+        log.debug("DM 방 목록 조회 완료: currentUserId={}, roomCount={}", currentUserId, response.size());
+        return response;
     }
 
     @Transactional(readOnly = true)
     public Page<DirectMessageResponse> getMessages(UUID currentUserId, UUID roomId, Pageable pageable) {
+        log.debug("메시지 내역 조회 시작: currentUserId={}, roomId={}", currentUserId, roomId);
 
         DirectMessageRoom room = roomRepository.findById(roomId)
             .orElseThrow(() -> new DMRoomNotFoundException());
@@ -107,12 +116,16 @@ public class DirectMessageService {
             throw new DMUnauthorizedException();
         }
 
-        return messageRepository.findByRoomIdOrderByCreatedAtDesc(roomId, pageable)
+        Page<DirectMessageResponse> response = messageRepository.findByRoomIdOrderByCreatedAtDesc(roomId, pageable)
             .map(messageMapper::toResponse);
+
+        log.debug("메시지 내역 조회 완료: roomId={}, messageCount={}", roomId, response.getTotalElements());
+        return response;
     }
 
     @Transactional
     public void markAsRead(UUID currentUserId, UUID roomId) {
+        log.debug("읽음 처리 시작: currentUserId={}, roomId={}", currentUserId, roomId);
 
         DirectMessageRoom room = roomRepository.findById(roomId)
             .orElseThrow(() -> new DMRoomNotFoundException());
@@ -125,10 +138,13 @@ public class DirectMessageService {
         }
 
         messageRepository.markAllAsReadByRoomIdAndSenderIdNot(roomId, currentUserId);
+
+        log.info("읽음 처리 완료: currentUserId={}, roomId={}", currentUserId, roomId);
     }
 
     @Transactional
     public DirectMessageSendResult sendMessage(UUID currentUserId, UUID roomId, DirectMessageSendRequest request) {
+        log.debug("메시지 전송 시작: currentUserId={}, roomId={}", currentUserId, roomId);
 
         DirectMessageRoom room = roomRepository.findById(roomId)
             .orElseThrow(() -> new DMRoomNotFoundException());
@@ -146,11 +162,11 @@ public class DirectMessageService {
         DirectMessage message = DirectMessage.create(room, sender, request.content());
         messageRepository.save(message);
 
-        // 상대방 ID 계산
         UUID receiverId = room.getSender().getId().equals(currentUserId)
             ? room.getReceiver().getId()
             : room.getSender().getId();
 
+        log.info("메시지 전송 완료: messageId={}, roomId={}, senderId={}", message.getId(), roomId, currentUserId);
         return new DirectMessageSendResult(
             messageMapper.toResponse(message),
             messageMapper.toNotificationResponse(message),
