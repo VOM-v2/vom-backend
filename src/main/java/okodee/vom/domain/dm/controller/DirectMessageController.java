@@ -1,0 +1,131 @@
+package okodee.vom.domain.dm.controller;
+
+import jakarta.validation.Valid;
+import java.security.Principal;
+import java.util.List;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import okodee.vom.domain.dm.dto.DirectMessageResponse;
+import okodee.vom.domain.dm.dto.DirectMessageRoomCreateRequest;
+import okodee.vom.domain.dm.dto.DirectMessageRoomListResponse;
+import okodee.vom.domain.dm.dto.DirectMessageRoomResponse;
+import okodee.vom.domain.dm.dto.DirectMessageSendRequest;
+import okodee.vom.domain.dm.dto.DirectMessageSendResult;
+import okodee.vom.domain.dm.service.DirectMessageService;
+import okodee.vom.global.security.VomUserDetails;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/direct-messages")
+@RequiredArgsConstructor
+public class DirectMessageController {
+
+    private final DirectMessageService directMessageService;
+    private final SimpMessagingTemplate messagingTemplate;
+
+    @PostMapping
+    public ResponseEntity<DirectMessageRoomResponse> createRoom(
+        Authentication authentication,
+        @RequestBody @Valid DirectMessageRoomCreateRequest request) {
+
+        UUID currentUserId = extractUserIdFromAuthentication(authentication);
+        log.info("DM 방 생성 요청: currentUserId={}, receiverId={}", currentUserId, request.receiverId());
+
+        DirectMessageRoomResponse response = directMessageService.createRoom(currentUserId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<DirectMessageRoomListResponse>> getRooms(
+        Authentication authentication) {
+
+        UUID currentUserId = extractUserIdFromAuthentication(authentication);
+        log.info("DM 방 목록 조회 요청: currentUserId={}", currentUserId);
+
+        List<DirectMessageRoomListResponse> response = directMessageService.getRooms(currentUserId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{roomId}")
+    public ResponseEntity<Page<DirectMessageResponse>> getMessages(
+        Authentication authentication,
+        @PathVariable UUID roomId,
+        Pageable pageable) {
+
+        UUID currentUserId = extractUserIdFromAuthentication(authentication);
+        log.info("메시지 내역 조회 요청: currentUserId={}, roomId={}", currentUserId, roomId);
+
+        Page<DirectMessageResponse> response = directMessageService.getMessages(currentUserId, roomId, pageable);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{roomId}")
+    public ResponseEntity<Void> markAsRead(
+        Authentication authentication,
+        @PathVariable UUID roomId) {
+
+        UUID currentUserId = extractUserIdFromAuthentication(authentication);
+        log.info("읽음 처리 요청: currentUserId={}, roomId={}", currentUserId, roomId);
+
+        directMessageService.markAsRead(currentUserId, roomId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @MessageMapping("/dm/{roomId}/send")
+    public void sendMessage(
+        @DestinationVariable UUID roomId,
+        @Payload DirectMessageSendRequest request,
+        Principal principal) {
+
+        VomUserDetails userDetails = (VomUserDetails) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+        UUID currentUserId = userDetails.getId();
+
+        log.info("메시지 전송 요청: currentUserId={}, roomId={}", currentUserId, roomId);
+
+        DirectMessageSendResult result = directMessageService.sendMessage(currentUserId, roomId, request);
+
+        // 방 구독자 전체에게 메시지 브로드캐스트
+        messagingTemplate.convertAndSend("/topic/dm/" + roomId, result.response());
+
+        // 상대방에게 알림 전송
+        messagingTemplate.convertAndSendToUser(
+            result.receiverEmail(),
+            "/queue/notifications",
+            result.notification()
+        );
+
+        log.debug("메시지 브로드캐스트 완료: roomId={}, receiverId={}", roomId, result.receiverId());
+    }
+
+    private UUID extractUserIdFromAuthentication(Authentication authentication) {
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new IllegalStateException("인증 정보가 없습니다.");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof VomUserDetails vomUserDetails) {
+            return vomUserDetails.getId();
+        }
+
+        throw new IllegalStateException("지원하지 않는 Principal 타입입니다: " + principal.getClass());
+    }
+}
