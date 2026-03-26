@@ -162,15 +162,16 @@ public class DirectMessageService {
         DirectMessage message = DirectMessage.create(room, sender, request.content());
         messageRepository.save(message);
 
-        UUID receiverId = room.getSender().getId().equals(currentUserId)
-            ? room.getReceiver().getId()
-            : room.getSender().getId();
+        boolean isSender = room.getSender().getId().equals(currentUserId);
+        UUID receiverId = isSender ? room.getReceiver().getId() : room.getSender().getId();
+        String receiverEmail = isSender ? room.getReceiver().getEmail() : room.getSender().getEmail();
 
         log.info("메시지 전송 완료: messageId={}, roomId={}, senderId={}", message.getId(), roomId, currentUserId);
         return new DirectMessageSendResult(
             messageMapper.toResponse(message),
             messageMapper.toNotificationResponse(message),
-            receiverId
+            receiverId,
+            receiverEmail
         );
     }
 }

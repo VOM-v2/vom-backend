@@ -5,7 +5,8 @@ import java.util.UUID;
 public record DirectMessageSendResult(
     DirectMessageResponse response,
     DirectMessageNotificationResponse notification,
-    UUID receiverId
+    UUID receiverId,
+    String receiverEmail
 ) {
 
 }

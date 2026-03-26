@@ -107,7 +107,7 @@ public class DirectMessageController {
 
         // 상대방에게 알림 전송
         messagingTemplate.convertAndSendToUser(
-            result.receiverId().toString(),
+            result.receiverEmail(),
             "/queue/notifications",
             result.notification()
         );
